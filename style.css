@@ -1,36 +1,70 @@
 body {
-  font-family: Arial, sans-serif;
+  background-color: #0e0e0e;
+  color: #e8e6e3;
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  padding: 0;
   text-align: center;
-  margin-top: 100px;
+}
+
+h1 {
+  font-family: 'Cinzel', serif;
+  font-size: 2.5rem;
+  letter-spacing: 2px;
+  margin-top: 40px;
+  margin-bottom: 10px;
+}
+
+h1::after {
+  content: "";
+  display: block;
+  width: 200px;
+  height: 1px;
+  background: #7a1f1f;
+  margin: 10px auto 30px;
+}
+button {
+  background-color: transparent;
+  border: 1px solid #7a1f1f;
+  color: #e8e6e3;
+  padding: 8px 16px;
+  margin: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:hover {
+  background-color: #7a1f1f;
 }
 
 input {
+  background-color: #1a1a1a;
+  border: 1px solid #444;
+  color: #e8e6e3;
   padding: 8px;
-  font-size: 16px;
 }
 
-button {
-  padding: 8px 12px;
-  font-size: 16px;
-  cursor: pointer;
-}
-
-#result {
-  white-space: pre-line;
+#history div {
+  border-bottom: 1px solid #222;
+  padding: 8px;
 }
 
 #history {
-  margin-top: 20px;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 600px;
+  margin: 20px auto;
+  text-align: left;
 }
 
 .history-entry {
-  border: 1px solid #ccc;
-  padding: 10px;
+  background-color: #141414;
+  border: 1px solid #222;
+  padding: 12px;
   margin-bottom: 10px;
-  border-radius: 6px;
-  background-color: #f9f9f9;
-  text-align: left;
+  border-radius: 4px;
+  color: #e8e6e3;
+  transition: background-color 0.2s ease;
+}
+
+.history-entry strong {
+  color: #c9b37e; /* subtle gold for monster name */
 }
