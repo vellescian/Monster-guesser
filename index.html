@@ -5,13 +5,15 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
+<p id="dayLabel"></p>
   <h1>Monster Guess</h1>
+<button onclick="playPreviousDay()">Play Previous Day</button>
+<button onclick="playNextDay()">Play Next Day</button>
 
   <input type="text" id="guessInput" list="monsterList" placeholder="Enter monster name">
 <datalist id="monsterList"></datalist>
 <button onclick="checkGuess()">Guess</button>
-
+<p id="attemptCounter"></p>
   <p id="result"></p>
 
   <h2>Guess History</h2>

@@ -1,5 +1,14 @@
 let monsters = [];
 let targetMonster = null;
+let maxAttempts = 6;
+let attempts = 0;
+let gameOver = false;
+let currentOffset = 0;   // 0 = today
+let maxOffset = 30;
+
+const dateKey = getDateKey(currentOffset);
+localStorage.setItem("played_" + dateKey, "true");
+const alreadyPlayed = localStorage.getItem("played_" + dateKey);
 
 fetch("monsters.json")
   .then(response => response.json())
@@ -24,14 +33,75 @@ fetch("monsters.json")
       option.value = monster.name;
       datalist.appendChild(option);
     });
-    pickRandomMonster();
+    pickDailyMonster();
     console.log("Target:", targetMonster);
     console.log(monsters);
   });
 
-function pickRandomMonster() {
-  const randomIndex = Math.floor(Math.random() * monsters.length);
-  targetMonster = monsters[randomIndex];
+function resetGame() {
+  attempts = 0;
+  gameOver = false;
+
+  document.getElementById("guessInput").disabled = false;
+  document.getElementById("result").textContent = "";
+  document.getElementById("history").innerHTML = "";
+
+  updateAttemptCounter();
+}
+
+function getDateKey(offset = 0) {
+  const date = new Date();
+  date.setDate(date.getDate() - offset);
+  return date.toDateString();
+}
+
+function playPreviousDay() {
+
+  if (currentOffset >= maxOffset) return;
+
+  currentOffset++;
+  resetGame();
+  pickDailyMonster(currentOffset);
+}
+
+function playNextDay() {
+
+  if (currentOffset <= 0) return;
+
+  currentOffset--;
+  resetGame();
+  pickDailyMonster(currentOffset);
+}
+
+function pickDailyMonster(offset = 0) {
+  
+  const today = new Date();
+  today.setDate(today.getDate() - offset);
+
+  const seed =
+    today.getFullYear() * 10000 +
+    (today.getMonth() + 1) * 100 +
+    today.getDate();
+
+  const index = seed % monsters.length;
+  const dateKey = getDateKey(currentOffset);
+  const alreadyPlayed = localStorage.getItem("played_" + dateKey);
+
+  if (alreadyPlayed === "true") {
+    document.getElementById("result").textContent = "You already completed this day!";
+  document.getElementById("guessInput").disabled = true;
+  }
+
+  targetMonster = monsters[index];
+
+  console.log("Daily Target:", targetMonster.name, "Offset:", offset);
+  const label = document.getElementById("dayLabel");
+
+  if (offset === 0) {
+    label.textContent = "Today's Monster";
+  } else {
+    label.textContent = `${offset} Day(s) Ago`;
+}
 }
 
 function extractCR(challengeString) {
@@ -108,6 +178,7 @@ function parseSize(sizeString) {
 
 function checkGuess() {
   const input = document.getElementById("guessInput").value.trim();
+  if (gameOver) return;
 
   if (!input) return;
 
@@ -121,7 +192,13 @@ function checkGuess() {
   }
 
 	if (match.name === targetMonster.name) {
-  document.getElementById("result").textContent = "Correct! 🎉";
+  gameOver = true;
+
+  document.getElementById("result").textContent = `Correct! You got it in ${attempts} guesses.`;
+  document.getElementById("guessInput").disabled = true;
+  const dateKey = getDateKey(currentOffset);
+  localStorage.setItem("played_" + dateKey, attempts);
+
   } else {
 
   let hintLines = [];
@@ -157,8 +234,6 @@ function checkGuess() {
   const guessAlign = parseAlignment(match.alignment);
   const targetAlign = parseAlignment(targetMonster.alignment);
 
- hintLines.push("\nAlignment:\n");
-
 if (targetAlign.special === "unaligned") {
 
   if (guessAlign.special === "unaligned") {
@@ -192,9 +267,26 @@ if (targetAlign.special === "unaligned") {
   }
 }
   addHistoryEntry(match, hintLines);
+  attempts++;
+  updateAttemptCounter();
   document.getElementById("result").textContent = "Wrong! See history below.";
+
+  if (attempts >= maxAttempts) {
+  gameOver = true;
+
+  document.getElementById("result").textContent =
+    `Out of guesses! The monster was ${targetMonster.name}.`;
+
+  document.getElementById("guessInput").disabled = true;
+  localStorage.setItem("lastPlayed", new Date().toDateString());
+}
 }
   }
+
+function updateAttemptCounter() {
+  document.getElementById("attemptCounter").textContent =
+    `Attempts: ${attempts} / ${maxAttempts}`;
+}
 
 function addHistoryEntry(guess, hintLines) {
 
