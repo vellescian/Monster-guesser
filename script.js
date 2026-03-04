@@ -6,10 +6,6 @@ let gameOver = false;
 let currentOffset = 0;   // 0 = today
 let maxOffset = 30;
 
-const dateKey = getDateKey(currentOffset);
-localStorage.setItem("played_" + dateKey, "true");
-const alreadyPlayed = localStorage.getItem("played_" + dateKey);
-
 fetch("monsters.json")
   .then(response => response.json())
   .then(data => {
@@ -33,7 +29,7 @@ fetch("monsters.json")
       option.value = monster.name;
       datalist.appendChild(option);
     });
-    pickDailyMonster();
+    pickDailyMonster(currentOffset);
     console.log("Target:", targetMonster);
     console.log(monsters);
   });
@@ -60,6 +56,7 @@ function playPreviousDay() {
   if (currentOffset >= maxOffset) return;
 
   currentOffset++;
+  console.log("Button pressed. currentOffset =", currentOffset);
   resetGame();
   pickDailyMonster(currentOffset);
 }
@@ -84,24 +81,26 @@ function pickDailyMonster(offset = 0) {
     today.getDate();
 
   const index = seed % monsters.length;
-  const dateKey = getDateKey(currentOffset);
+  targetMonster = monsters[index];
+  const dateKey = getDateKey(offset);
   const alreadyPlayed = localStorage.getItem("played_" + dateKey);
 
-  if (alreadyPlayed === "true") {
+  console.log("Checking key:", "played_" + dateKey);
+  console.log("Stored value:", alreadyPlayed);
+
+  if (alreadyPlayed !== null) {
     document.getElementById("result").textContent = "You already completed this day!";
-  document.getElementById("guessInput").disabled = true;
+    document.getElementById("guessInput").disabled = true;
+  } else {
+    document.getElementById("guessInput").disabled = false;
   }
-
-  targetMonster = monsters[index];
-
-  console.log("Daily Target:", targetMonster.name, "Offset:", offset);
   const label = document.getElementById("dayLabel");
 
   if (offset === 0) {
     label.textContent = "Today's Monster";
   } else {
     label.textContent = `${offset} Day(s) Ago`;
-}
+  }
 }
 
 function extractCR(challengeString) {
@@ -197,11 +196,23 @@ function checkGuess() {
   document.getElementById("result").textContent = `Correct! You got it in ${attempts} guesses.`;
   document.getElementById("guessInput").disabled = true;
   const dateKey = getDateKey(currentOffset);
-  localStorage.setItem("played_" + dateKey, attempts);
+  localStorage.setItem("played_" + dateKey, "win");
 
   } else {
 
   let hintLines = [];
+
+  if (match.name.length > targetMonster.name.length + 5) {
+    hintLines.push("Name is WAY too long.\n");
+  } else if (match.name.length > targetMonster.name.length) {
+    hintLines.push("Name is too long.\n");
+  } else if (match.name.length < targetMonster.name.length - 5) {
+    hintLines.push("Name is WAY too short.\n");
+  } else if (match.name.length < targetMonster.name.length) {
+    hintLines.push("Name is too short.\n");
+  } else {
+    hintLines.push("Name length matches.\n");
+  }
 
   if (match.cr > targetMonster.cr + 5) {
     hintLines.push("CR is MUCH too high.\n");
@@ -278,6 +289,8 @@ if (targetAlign.special === "unaligned") {
     `Out of guesses! The monster was ${targetMonster.name}.`;
 
   document.getElementById("guessInput").disabled = true;
+  const dateKey = getDateKey(currentOffset);
+  localStorage.setItem("played_" + dateKey, "loss");
   localStorage.setItem("lastPlayed", new Date().toDateString());
 }
 }
