@@ -80,8 +80,22 @@ function pickDailyMonster(offset = 0) {
     (today.getMonth() + 1) * 100 +
     today.getDate();
 
-  const index = seed % monsters.length;
-  targetMonster = monsters[index];
+  let index = seed % monsters.length;
+
+  while (true) {
+    const candidate = monsters[index];
+    const alignment = candidate.alignment?.toLowerCase() || "";
+
+    if (
+      !alignment.includes("unaligned") &&
+      !alignment.includes("any")
+    ) {
+      targetMonster = candidate;
+      break;
+    }
+
+  index = (index + 1) % monsters.length;
+  }
   const dateKey = getDateKey(offset);
   const alreadyPlayed = localStorage.getItem("played_" + dateKey);
 
